@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serviços de Engenharia Civil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 1em 0;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #444;
+            padding: 0.5em 0;
+        }
+        nav a {
+            color: #fff;
+            margin: 0 1em;
+            text-decoration: none;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        section {
+            max-width: 800px;
+            margin: 2em auto;
+            padding: 1em;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Serviços de Engenharia Civil</h1>
+    </header>
+    <nav>
+        <a href="#sobre">Sobre</a>
+        <a href="#servicos">Serviços</a>
+        <a href="#contato">Contato</a>
+    </nav>
+    <section id="sobre">
+        <h2>Sobre Nós</h2>
+        <p>Descrição sobre sua empresa e sua trajetória no mercado de engenharia civil.</p>
+    </section>
+    <section id="servicos">
+        <h2>Serviços</h2>
+        <ul>
+            <li>Construção Civil</li>
+            <li>Projetos Estruturais</li>
+            <li>Consultoria em Engenharia</li>
+            <!-- Adicione outros serviços conforme necessário -->
+        </ul>
+    </section>
+    <section id="contato">
+        <h2>Contato</h2>
+        <p>Email: seuemail@example.com</p>
+        <p>Telefone: (XX) XXXX-XXXX</p>
+    </section>
+</body>
+</html>
