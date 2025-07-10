@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.edge.service import Service
+from selenium.common.exceptions import TimeoutException
 
 try:
     from webdriver_manager.microsoft import EdgeChromiumDriverManager
@@ -17,8 +18,7 @@ except ImportError:
 
 # Palavra a ser buscada
 PALAVRA_CHAVE = "telha transparente"
-# Caminho para o Edge WebDriver. Deixe como ``None`` para usar o caminho do
-# sistema ou a instalação automática via ``webdriver-manager``.
+# Caminho para o Edge WebDriver. Defina ``EDGE_DRIVER_PATH`` ou ``CAMINHO_DRIVER``.
 CAMINHO_DRIVER = None
 # Tempo máximo de espera para elementos
 TEMPO_ESPERA = 15
@@ -30,12 +30,19 @@ def criar_driver():
     options.use_chromium = True
     options.add_argument("--start-maximized")
 
-    caminho = os.getenv("EDGE_DRIVER_PATH", CAMINHO_DRIVER)
+    if os.getenv("HEADLESS", "0").lower() in {"1", "true"}:
+        options.add_argument("--headless")
 
-    if EdgeChromiumDriverManager is not None and caminho is None:
+    caminho = os.getenv("EDGE_DRIVER_PATH") or CAMINHO_DRIVER
+
+    if caminho and os.path.exists(caminho):
+        service = Service(caminho)
+    elif EdgeChromiumDriverManager is not None:
         service = Service(EdgeChromiumDriverManager().install())
     else:
-        service = Service(caminho)
+        raise RuntimeError(
+            "WebDriver não encontrado. Defina EDGE_DRIVER_PATH ou instale webdriver-manager."
+        )
 
     return webdriver.Edge(service=service, options=options)
 
@@ -47,6 +54,31 @@ def esperar_e_clicar(driver, wait, by, valor):
     time.sleep(1)
 
 
+def obter_input_busca(wait):
+    """Localiza o campo de busca utilizando diferentes seletores."""
+    locators = [
+        (By.XPATH, "//input[@placeholder='Buscar por palavras-chave']"),
+        (By.CSS_SELECTOR, "input[placeholder*='palavra']"),
+    ]
+    for by, value in locators:
+        try:
+            return wait.until(EC.presence_of_element_located((by, value)))
+        except TimeoutException:
+            continue
+    raise TimeoutException("Campo de busca não localizado")
+
+
+def fechar_dialogos(driver):
+    """Fecha janelas de aviso que possam bloquear a página."""
+    seletores = ["button[aria-label='Fechar']", "button.cookie-consent-accept"]
+    for seletor in seletores:
+        try:
+            driver.find_element(By.CSS_SELECTOR, seletor).click()
+            time.sleep(1)
+        except Exception:
+            pass
+
+
 def main():
     driver = criar_driver()
     wait = WebDriverWait(driver, TEMPO_ESPERA)
@@ -55,12 +87,9 @@ def main():
     print("Acessando o site...")
     driver.get("https://pncp.gov.br/app/editais")
     time.sleep(6)
+    fechar_dialogos(driver)
 
-    input_busca = wait.until(
-        EC.presence_of_element_located(
-            (By.XPATH, "//input[@placeholder='Buscar por palavras-chave']")
-        )
-    )
+    input_busca = obter_input_busca(wait)
     input_busca.clear()
     input_busca.send_keys(PALAVRA_CHAVE)
     input_busca.send_keys(Keys.ENTER)
@@ -90,6 +119,7 @@ def main():
             driver.execute_script("window.open(arguments[0]);", link)
             driver.switch_to.window(driver.window_handles[-1])
             time.sleep(4)
+            fechar_dialogos(driver)
             try:
                 esperar_e_clicar(driver, wait, By.XPATH, "//mat-tab-header//*[contains(text(), 'Itens')]")
                 esperar_e_clicar(driver, wait, By.XPATH, "//mat-select[contains(@aria-label, 'itens por página')]")
